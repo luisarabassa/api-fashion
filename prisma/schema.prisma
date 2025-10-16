@@ -44,21 +44,21 @@ model Cliente {
 }
 
 model Produto {
-  id         Int      @id @default(autoincrement())
-  cor        String   @db.VarChar(20)
-  marca      String?  @db.VarChar(20)
-  material   String?  @db.VarChar(20)
-  valor      Decimal  @db.Decimal(10, 2)
-  foto       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt()
-  favorito   Boolean  @default(false)
-  tamanho    Tamanhos @default(M)
-  tipo       Tipos    @default(BLUSA)
-  vendas     Venda[]
-  admin      Admin?   @relation(fields: [adminId], references: [id])
-  adminId    String?  @db.VarChar(36)
-  ativo      Boolean  @default(true)
+  id        Int      @id @default(autoincrement())
+  cor       String   @db.VarChar(20)
+  marca     String?  @db.VarChar(20)
+  material  String?  @db.VarChar(20)
+  valor     Decimal  @db.Decimal(10, 2)
+  foto      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+  favorito  Boolean  @default(false)
+  tamanho   Tamanhos @default(M)
+  tipo      Tipos    @default(BLUSA)
+  vendas    Venda[]
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?  @db.VarChar(36)
+  ativo     Boolean  @default(true)
 
   @@map("produtos")
 }
@@ -92,7 +92,7 @@ model Venda {
   valor     Decimal      @db.Decimal(10, 2)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  Admin     Admin?       @relation(fields: [adminId], references: [id])
+  admin     Admin?       @relation(fields: [adminId], references: [id])
   adminId   String?      @db.VarChar(36)
   pagamento Pagamentos
   status    StatusPedido @default(PENDENTE)

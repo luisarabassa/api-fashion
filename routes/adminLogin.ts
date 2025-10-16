@@ -8,7 +8,6 @@ const router = Router()
 
 router.post("/", async (req, res) => {
   const { email, senha } = req.body
-
   const mensaPadrao = "Login ou senha incorretos"
 
   if (!email || !senha) {
@@ -22,14 +21,11 @@ router.post("/", async (req, res) => {
     })
 
     if (admin == null) {
-      // res.status(400).json({ erro: "E-mail inválido" })
       res.status(400).json({ erro: mensaPadrao })
       return
     }
 
-    // se o e-mail existe, faz-se a comparação dos hashs
     if (bcrypt.compareSync(senha, admin.senha)) {
-      // se confere, gera e retorna o token
       const token = jwt.sign({
         adminLogadoId: admin.id,
         adminLogadoNome: admin.nome,
@@ -47,6 +43,13 @@ router.post("/", async (req, res) => {
         token
       })
     } else {
+      const descricao = "Tentativa de acesso ao sistema"
+      const complemento = "Admin: " + admin.id + " - " + admin.nome
+
+      const log = await prisma.log.create({
+        data: { descricao, complemento, adminId: admin.id }
+      })
+
       res.status(400).json({ erro: mensaPadrao })
     }
   } catch (error) {
