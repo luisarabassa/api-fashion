@@ -2,6 +2,7 @@ import { Pagamentos, PrismaClient, StatusPedido } from "@prisma/client"
 import { Router } from "express"
 import { z } from 'zod'
 import nodemailer from 'nodemailer'
+import { verificaToken } from '../middewares/verificaToken'
 
 const prisma = new PrismaClient()
 const router = Router()
@@ -46,7 +47,7 @@ async function enviaEmail(
   console.log("Message sent: %s", info.messageId);
 }
 
-router.get("/", async (req, res) => {
+router.get("/", verificaToken, async (req, res) => {
   try {
     const vendas = await prisma.venda.findMany({
       include: {
@@ -96,14 +97,14 @@ router.get("/:clienteId", async (req, res) => {
   }
 })
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", verificaToken, async (req, res) => {
   const { id } = req.params
- 
+
   const valida = vendaSchema.safeParse(req.body)
   if (!valida.success) {
     return res.status(400).json({ erros: valida.error.issues })
   }
-  
+
   const { status } = valida.data
 
   try {
