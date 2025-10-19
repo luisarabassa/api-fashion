@@ -11,7 +11,10 @@ const vendaSchema = z.object({
   clienteId: z.string(),
   produtoId: z.number(),
   pagamento: z.nativeEnum(Pagamentos),
-  valor: z.number(),
+  valor: z.number()
+})
+
+const updateStatusSchema = z.object({
   status: z.nativeEnum(StatusPedido)
 })
 
@@ -63,7 +66,6 @@ router.get("/", verificaToken, async (req, res) => {
 })
 
 router.post("/", async (req, res) => {
-
   const valida = vendaSchema.safeParse(req.body)
   if (!valida.success) {
     res.status(400).json({ erro: valida.error })
@@ -100,7 +102,7 @@ router.get("/:clienteId", async (req, res) => {
 router.patch("/:id", verificaToken, async (req, res) => {
   const { id } = req.params
 
-  const valida = vendaSchema.safeParse(req.body)
+  const valida = updateStatusSchema.safeParse(req.body)
   if (!valida.success) {
     return res.status(400).json({ erros: valida.error.issues })
   }
