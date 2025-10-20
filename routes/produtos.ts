@@ -10,10 +10,8 @@ const router = Router()
 const produtoSchema = z.object({
   cor: z.string().min(4,
     { message: "Nome da cor deve possuir, no mínimo, 4 caracteres" }),
-  marca: z.string().min(2,
-    { message: "Nome da marca deve possuir, no mínimo, 2 caracteres" }).optional(),
-  material: z.string().min(2,
-    { message: "Nome do material deve possuir, no mínimo, 2 caracteres" }).optional(),
+  marca: z.string().optional(),
+  material: z.string().optional(),
   valor: z.number().positive({ message: "Valor deve ser um valor positivo" }),
   foto: z.string(),
   favorito: z.boolean().optional(),
