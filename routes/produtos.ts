@@ -1,7 +1,6 @@
 import { PrismaClient, Tamanhos, Tipos } from '@prisma/client'
 import { Router } from 'express'
 import { z } from 'zod'
-
 import { verificaToken } from '../middewares/verificaToken'
 
 const prisma = new PrismaClient()
@@ -69,7 +68,7 @@ router.get("/:id", async (req, res) => {
   }
 })
 
-router.post("/", async (req, res) => {
+router.post("/", verificaToken, async (req, res) => {
 
   const valida = produtoSchema.safeParse(req.body)
   if (!valida.success) {
@@ -89,7 +88,7 @@ router.post("/", async (req, res) => {
   }
 })
 
-router.delete("/:id", verificaToken,async (req, res) => {
+router.delete("/:id", verificaToken, async (req, res) => {
   const { id } = req.params
 
   try {
