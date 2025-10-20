@@ -1,0 +1,1 @@
+SELECT setval(pg_get_serial_sequence('produtos', 'id'), COALESCE((SELECT MAX(id) FROM "produtos"), 1));
