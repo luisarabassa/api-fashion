@@ -41,6 +41,8 @@ router.post("/", async (req, res) => {
         id: cliente.id,
         nome: cliente.nome,
         email: cliente.email,
+        cidade: cliente.cidade,
+        endereco: cliente.endereco,
         token
       })
     } else {
