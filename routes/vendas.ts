@@ -13,7 +13,7 @@ const vendaSchema = z.object({
   pagamento: z.nativeEnum(Pagamentos),
   valor: z.number()
 })
-
+// 
 const updateStatusSchema = z.object({
   status: z.nativeEnum(StatusPedido)
 })
