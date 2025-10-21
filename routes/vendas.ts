@@ -13,7 +13,7 @@ const vendaSchema = z.object({
   pagamento: z.nativeEnum(Pagamentos),
   valor: z.number()
 })
-// 
+
 const updateStatusSchema = z.object({
   status: z.nativeEnum(StatusPedido)
 })
@@ -74,12 +74,22 @@ router.post("/", async (req, res) => {
   const { clienteId, produtoId, pagamento, valor } = valida.data
 
   try {
-    const venda = await prisma.venda.create({
-      data: { clienteId, produtoId, pagamento, valor }
-    })
+    const [venda] = await prisma.$transaction([
+      prisma.venda.create({
+        data: { clienteId, produtoId, pagamento, valor }
+      }),
+      prisma.produto.update({
+        where: { id: produtoId },
+        data: { ativo: false }
+      })
+    ])
     res.status(201).json(venda)
-  } catch (error) {
-    res.status(400).json(error)
+  } catch (error: any) {
+    if (error.code === 'P2025') { 
+        res.status(400).json({ message: "Erro: Este item já foi vendido ou não existe." })
+    } else {
+        res.status(400).json(error)
+    }
   }
 })
 
