@@ -83,6 +83,15 @@ enum Tipos {
   CALCADO
 }
 
+model TentativaCompra {
+  id        String     @id @default(uuid())
+  clienteId String
+  produtoId Int
+  pagamento Pagamentos
+  valor     Decimal    @db.Decimal(10, 2)
+  createdAt DateTime   @default(now())
+}
+
 model Venda {
   id        Int          @id @default(autoincrement())
   cliente   Cliente      @relation(fields: [clienteId], references: [id])
