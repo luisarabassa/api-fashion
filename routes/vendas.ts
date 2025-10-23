@@ -177,4 +177,18 @@ router.patch("/:id", verificaToken, async (req, res) => {
   }
 })
 
+router.delete("/:id", verificaToken, async (req, res) => {
+  const { id } = req.params
+  try {
+    await prisma.venda.delete({
+      where: { id: Number(id) }
+    })
+    res.status(204).send() 
+
+  } catch (error) {
+    console.error("Erro ao excluir venda:", error)
+    res.status(500).json({ erro: "Erro ao excluir a venda." })
+  }
+})
+
 export default router
