@@ -12,7 +12,6 @@ router.post("/", async (req, res) => {
   const mensaPadrao = "Email ou senha incorretos"
 
   if (!email || !senha) {
-
     res.status(400).json({ erro: mensaPadrao })
     return
   }
@@ -23,15 +22,15 @@ router.post("/", async (req, res) => {
     })
 
     if (cliente == null) {
-
       res.status(400).json({ erro: mensaPadrao })
       return
     }
 
     if (bcrypt.compareSync(senha, cliente.senha)) {
       const token = jwt.sign({
-        clienteLogadoId: cliente.id,
-        clienteLogadoNome: cliente.nome
+        userLogadoId: cliente.id,       
+        userLogadoNome: cliente.nome,   
+        userLogadoNivel: 1              
       },
         process.env.JWT_KEY as string,
         { expiresIn: "1h" }
