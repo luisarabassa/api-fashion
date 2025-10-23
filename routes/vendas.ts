@@ -8,10 +8,8 @@ const prisma = new PrismaClient()
 const router = Router()
 
 const vendaSchema = z.object({
-  clienteId: z.string(),
-  produtoId: z.number(),
-  pagamento: z.nativeEnum(Pagamentos),
-  valor: z.number()
+  produtoId: z.number().int().positive({ message: "ID do produto inválido." }),
+  pagamento: z.nativeEnum(Pagamentos, { message: "Método de pagamento inválido." }),
 })
 // 
 const updateStatusSchema = z.object({
@@ -41,10 +39,10 @@ async function enviaEmail(
     subject: `Atualização sobre seu Pedido #${vendaId}`,
     text: `Olá, ${nomeCliente}. O status do seu pedido foi atualizado para: ${novoStatus}.`,
     html: `<h3>Olá, ${nomeCliente}!</h3>
-           <p>Temos uma novidade sobre o seu pedido <strong>#${vendaId}</strong>.</p>
-           <p>O status da sua compra do item "<strong>${produtoNome}</strong>" foi atualizado para: <strong>${novoStatus}</strong>.</p>
-           <p>Obrigado por comprar conosco!</p>
-           <p>Atenciosamente,<br>Equipe Avenida Fashion</p>`
+             <p>Temos uma novidade sobre o seu pedido <strong>#${vendaId}</strong>.</p>
+             <p>O status da sua compra do item "<strong>${produtoNome}</strong>" foi atualizado para: <strong>${novoStatus}</strong>.</p>
+             <p>Obrigado por comprar conosco!</p>
+             <p>Atenciosamente,<br>Equipe Avenida Fashion</p>`
   });
 
   console.log("Message sent: %s", info.messageId);
@@ -65,21 +63,51 @@ router.get("/", verificaToken, async (req, res) => {
   }
 })
 
-router.post("/", async (req, res) => {
+router.post("/", verificaToken, async (req, res) => { 
+
   const valida = vendaSchema.safeParse(req.body)
   if (!valida.success) {
-    res.status(400).json({ erro: valida.error })
+    res.status(400).json({ erro: valida.error.errors }) 
     return
   }
-  const { clienteId, produtoId, pagamento, valor } = valida.data
+  const { produtoId, pagamento } = valida.data
+
+
+  const clienteId = req.userLogadoId as string 
+
+  if (!clienteId) {
+    return res.status(401).json({ erro: "Cliente não autenticado. Faça login para comprar." })
+  }
 
   try {
+
+    const produto = await prisma.produto.findUnique({
+      where: {
+        id: produtoId,
+        ativo: true 
+      }
+    })
+
+    if (!produto) {
+      return res.status(404).json({ erro: "Produto não encontrado ou indisponível." })
+    }
+
+    const valorSeguro = produto.valor
+
     const venda = await prisma.venda.create({
-      data: { clienteId, produtoId, pagamento, valor }
+      data: {
+        clienteId: clienteId,    
+        produtoId: produtoId,   
+        pagamento: pagamento,  
+        valor: valorSeguro,    
+        status: 'PENDENTE'    
+      }
     })
     res.status(201).json(venda)
+
   } catch (error) {
-    res.status(400).json(error)
+    console.error("Erro ao criar venda:", error) 
+    res.status(500).json({erro: "Ocorreu um erro ao processar sua venda."})
   }
 })
 
