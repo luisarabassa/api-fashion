@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken"
 import { Request, Response, NextFunction } from 'express'
 
 type TokenType = {
-  userLogadoId: number
+  userLogadoId: string 
   userLogadoNome: string
   userLogadoNivel: number
 }
@@ -12,24 +12,40 @@ declare global {
     interface Request {
       userLogadoId?: string
       userLogadoNome?: string
+      userLogadoNivel?: number 
     }
   }
 }
 
-export function verificaToken(req: Request | any, res: Response, next: NextFunction) {
+export function verificaToken(req: Request, res: Response, next: NextFunction) {
   const { authorization } = req.headers
 
   if (!authorization) {
-    res.status(401).json({ error: "Token não informado" })
-    return
+
+    return res.status(401).json({ error: "Token não informado" })
   }
 
   const token = authorization.split(" ")[1]
+  
+  if (!token) {
+
+    return res.status(401).json({ error: "Token mal formatado" })
+  }
 
   try {
-    const decode = jwt.verify(token, process.env.JWT_KEY as string)
+
+    const jwtKey = process.env.JWT_KEY as string;
+    if (!jwtKey) {
+        throw new Error("Chave JWT não configurada no servidor.");
+    }
+
+    const decode = jwt.verify(token, jwtKey)
 
     const { userLogadoId, userLogadoNome, userLogadoNivel } = decode as TokenType
+
+    if (!userLogadoId) {
+      return res.status(401).json({ error: "Token inválido (payload não encontrado)" })
+    }
 
     req.userLogadoId    = userLogadoId
     req.userLogadoNome  = userLogadoNome
@@ -37,6 +53,7 @@ export function verificaToken(req: Request | any, res: Response, next: NextFunct
 
     next()
   } catch (error) {
-    res.status(401).json({ error: "Token inválido" })
+    console.error("Erro ao verificar token:", error);
+    res.status(401).json({ error: "Token inválido ou expirado" })
   }
 }
