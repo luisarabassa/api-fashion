@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Tipos } from "@prisma/client" // Importei o Tipos para o type
 import { Router } from "express"
 
 const prisma = new PrismaClient()
 const router = Router()
 
+// Rota /gerais (Perfeita, sem alterações)
 router.get("/gerais", async (req, res) => {
   try {
     const clientes = await prisma.cliente.count()
@@ -15,12 +16,6 @@ router.get("/gerais", async (req, res) => {
   }
 })
 
-type ProdutoGroupByMarca = {
-  marca: string | null
-  _count: {
-    marca: number
-  }
-}
 type ClienteGroupByCidade = {
   cidade: string
   _count: {
@@ -48,22 +43,30 @@ router.get("/clientesCidade", async (req, res) => {
   }
 })
 
-router.get("/produtosMarca", async (req, res) => {
+type ProdutoGroupByTipo = {
+  tipo: Tipos 
+  _count: {
+    id: number 
+  }
+}
+
+router.get("/produtosTipo", async (req, res) => {
   try {
     const produtos = await prisma.produto.groupBy({
-      by: ['marca'],
+      by: ['tipo'],
       _count: {
-        marca: true,
-      }
+        id: true,
+      },
     })
 
-    const produtos2 = produtos.map((produto: ProdutoGroupByMarca) => ({
-      marca: produto.marca ?? "Sem Marca",
-      num: produto._count.marca
+    const produtos2 = produtos.map((produto: ProdutoGroupByTipo) => ({
+      tipo: produto.tipo,
+      num: produto._count.id 
     }))
 
     res.status(200).json(produtos2)
   } catch (error) {
+    console.error("Erro em /produtosTipo:", error)
     res.status(400).json(error)
   }
 })
