@@ -51,10 +51,7 @@ async function enviaEmail(
 router.get("/", verificaToken, async (req, res) => {
   try {
     const vendas = await prisma.venda.findMany({
-      include: {
-        cliente: true,
-        produto: true
-      },
+      include: { cliente: true, produto: true },
       orderBy: { createdAt: 'desc' }
     })
     res.status(200).json(vendas)
@@ -63,51 +60,60 @@ router.get("/", verificaToken, async (req, res) => {
   }
 })
 
-router.post("/", verificaToken, async (req, res) => { 
-
+router.post("/", verificaToken, async (req, res) => {
   const valida = vendaSchema.safeParse(req.body)
   if (!valida.success) {
-    res.status(400).json({ erro: valida.error.errors }) 
-    return
+    return res.status(400).json({ erro: valida.error.errors })
   }
   const { produtoId, pagamento } = valida.data
 
-
-  const clienteId = req.userLogadoId as string 
-
+  const clienteId = req.userLogadoId as string
   if (!clienteId) {
-    return res.status(401).json({ erro: "Cliente não autenticado. Faça login para comprar." })
+    return res.status(401).json({ erro: "Cliente não autenticado." })
   }
 
   try {
-
     const produto = await prisma.produto.findUnique({
       where: {
         id: produtoId,
-        ativo: true 
       }
     })
 
     if (!produto) {
-      return res.status(404).json({ erro: "Produto não encontrado ou indisponível." })
+      return res.status(404).json({ erro: "Produto não encontrado." })
+    }
+
+    if (!produto.ativo) {
+      return res.status(400).json({ erro: "Este item já foi vendido." })
     }
 
     const valorSeguro = produto.valor
 
-    const venda = await prisma.venda.create({
-      data: {
-        clienteId: clienteId,    
-        produtoId: produtoId,   
-        pagamento: pagamento,  
-        valor: valorSeguro,    
-        status: 'PENDENTE'    
-      }
+    const venda = await prisma.$transaction(async (tx) => {
+
+      const novaVenda = await tx.venda.create({
+        data: {
+          clienteId: clienteId,
+          produtoId: produtoId,
+          pagamento: pagamento,
+          valor: valorSeguro,
+          status: 'PENDENTE'
+        }
+      })
+
+      await tx.produto.update({
+        where: { id: produtoId },
+        data: { ativo: false } 
+      })
+
+      return novaVenda 
     })
+
     res.status(201).json(venda)
 
   } catch (error) {
-    console.error("Erro ao criar venda:", error) 
-    res.status(500).json({erro: "Ocorreu um erro ao processar sua venda."})
+    console.error("Erro ao criar venda:", error)
+    res.status(500).json({ erro: "Ocorreu um erro ao processar sua venda." })
   }
 })
 
