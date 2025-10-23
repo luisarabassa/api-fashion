@@ -65,47 +65,48 @@ router.get("/", verificaToken, async (req, res) => {
   }
 })
 
-router.post("/", async (req, res) => {
-  const valida = vendaSchema.safeParse(req.body)
-  if (!valida.success) {
-    res.status(400).json({ erro: valida.error })
-    return
-  }
-  const { clienteId, produtoId, pagamento, valor } = valida.data
+router.post("/confirmar/:tentativaId", async (req, res) => {
+  const { tentativaId } = req.params;
 
   try {
+    const tentativa = await prisma.tentativaCompra.findUnique({
+      where: { id: tentativaId }
+    });
+
+    if (!tentativa) {
+      return res.status(404).json({ erro: "Tentativa de compra não encontrada ou expirada." });
+    }
+
     const [venda] = await prisma.$transaction([
       prisma.venda.create({
-        data: { clienteId, produtoId, pagamento, valor }
+        data: {
+          clienteId: tentativa.clienteId,
+          produtoId: tentativa.produtoId,
+          pagamento: tentativa.pagamento,
+          valor: tentativa.valor
+        },
+        include: { cliente: true, produto: true }
       }),
       prisma.produto.update({
-        where: { id: produtoId },
+        where: { id: tentativa.produtoId },
         data: { ativo: false }
+      }),
+      prisma.tentativaCompra.delete({
+        where: { id: tentativaId }
       })
-    ])
-    res.status(201).json(venda)
-  } catch (error: any) {
-    if (error.code === 'P2025') { 
-        res.status(400).json({ message: "Erro: Este item já foi vendido ou não existe." })
-    } else {
-        res.status(400).json(error)
-    }
-  }
-})
+    ]);
 
-router.get("/:clienteId", async (req, res) => {
-  const { clienteId } = req.params
-  try {
-    const vendas = await prisma.venda.findMany({
-      where: { clienteId },
-      include: {
-        produto: true
-      },
-      orderBy: { createdAt: 'desc' }
-    })
-    res.status(200).json(vendas)
+    enviaEmail(
+      venda.cliente.nome,
+      venda.cliente.email,
+      venda.id,
+      `${venda.produto.tipo} ${venda.produto.cor}`,
+      venda.status
+    );
+
+    res.status(200).json(venda);
   } catch (error) {
-    res.status(400).json(error)
+    res.status(500).json({ erro: error });
   }
 })
 
