@@ -84,12 +84,12 @@ enum Tipos {
 }
 
 model TentativaCompra {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   clienteId String
   produtoId Int
   pagamento Pagamentos
-  valor     Decimal  @db.Decimal(10, 2)
-  criadoEm  DateTime @default(now())
+  valor     Decimal    @db.Decimal(10, 2)
+  createdAt DateTime   @default(now())
 }
 
 model Venda {
