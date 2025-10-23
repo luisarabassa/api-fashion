@@ -180,10 +180,14 @@ router.patch("/:id", verificaToken, async (req, res) => {
 router.delete("/:id", verificaToken, async (req, res) => {
   const { id } = req.params
   try {
-    await prisma.venda.delete({
+    const deleteResult = await prisma.venda.deleteMany({
       where: { id: Number(id) }
     })
-    res.status(204).send() 
+
+    if (deleteResult.count === 0) {
+      return res.status(404).json({ erro: "Venda não encontrada." })
+    }
+    res.status(200).json({ message: "Venda excluída com sucesso" }) 
 
   } catch (error) {
     console.error("Erro ao excluir venda:", error)
