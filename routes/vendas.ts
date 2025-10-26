@@ -11,7 +11,7 @@ const vendaSchema = z.object({
   produtoId: z.number().int().positive({ message: "ID do produto inválido." }),
   pagamento: z.nativeEnum(Pagamentos, { message: "Método de pagamento inválido." }),
 })
-// 
+
 const updateStatusSchema = z.object({
   status: z.nativeEnum(StatusPedido)
 })
@@ -103,10 +103,10 @@ router.post("/", verificaToken, async (req, res) => {
 
       await tx.produto.update({
         where: { id: produtoId },
-        data: { ativo: false } 
+        data: { ativo: false }
       })
 
-      return novaVenda 
+      return novaVenda
     })
 
     res.status(201).json(venda)
@@ -187,7 +187,7 @@ router.delete("/:id", verificaToken, async (req, res) => {
     if (deleteResult.count === 0) {
       return res.status(404).json({ erro: "Venda não encontrada." })
     }
-    res.status(200).json({ message: "Venda excluída com sucesso" }) 
+    res.status(200).json({ message: "Venda excluída com sucesso" })
 
   } catch (error) {
     console.error("Erro ao excluir venda:", error)

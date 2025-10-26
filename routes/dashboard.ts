@@ -1,10 +1,9 @@
-import { PrismaClient, Tipos } from "@prisma/client" // Importei o Tipos para o type
+import { PrismaClient, Tipos } from "@prisma/client"
 import { Router } from "express"
 
 const prisma = new PrismaClient()
 const router = Router()
 
-// Rota /gerais (Perfeita, sem alterações)
 router.get("/gerais", async (req, res) => {
   try {
     const clientes = await prisma.cliente.count()

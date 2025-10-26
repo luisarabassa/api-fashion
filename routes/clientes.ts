@@ -16,8 +16,8 @@ const clienteSchema = z.object({
   cidade: z.string().min(1,
     { message: "Nome deve possuir, no mínimo, 1 caractere" }),
   telefone: z.string().min(15,
-    { message: "Telefone deve possuir, no mínimo 15 caracteres, exemplo: (53) 99177-8732"}),
-  endereco: z.string().min(2, 
+    { message: "Telefone deve possuir, no mínimo 15 caracteres, exemplo: (53) 99177-8732" }),
+  endereco: z.string().min(2,
     { message: "Endereço deve possuir, no mínimo 5 caracteres" }).optional()
 })
 
@@ -94,7 +94,7 @@ router.post("/", async (req, res) => {
   const salt = bcrypt.genSaltSync(12)
 
   const hash = bcrypt.hashSync(valida.data.senha, salt)
- 
+
   const { nome, email, cidade, telefone, endereco } = valida.data
 
   try {
